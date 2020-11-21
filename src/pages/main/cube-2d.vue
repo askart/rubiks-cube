@@ -8,13 +8,12 @@
         :class="`cube-2d__grid__face--${face.key}`"
       >
         <div
-          v-for="particle in 9"
-          :key="particle"
+          v-for="particle in face.particles"
+          :key="`${face.key}__${particle.key}`"
           class="cube-2d__grid__face__particle"
+          :style="{ backgroundColor: particle.color, color: particle.fontColor }"
         >
-          <template v-if="particle % 5 === 0">
-            {{ face.key }}
-          </template>
+          <template v-if="particle.content">{{ particle.content }}</template>
         </div>
       </div>
     </div>
@@ -22,23 +21,38 @@
 </template>
 
 <script>
+import { generateFaces, getNewFaces } from "@/lib/cube2d";
+import { deepClone } from "@/lib/utils";
+
 export default {
   name: "Cube2d",
   data() {
     return {
-      faces: [
-        { key: "U" },
-        { key: "L" },
-        { key: "F" },
-        { key: "R" },
-        { key: "B" },
-        { key: "D" }
-      ]
+      faces: []
     };
   },
   computed: {
     records() {
       return this.$store.getters["ActionRecords/getRecords"];
+    }
+  },
+  watch: {
+    records: {
+      handler: function(val) {
+        let lastMove = val.slice(-1)[0];
+        this.handleMove(lastMove);
+      }
+    }
+  },
+  created() {
+    this.initFaces();
+  },
+  methods: {
+    initFaces() {
+      this.faces = generateFaces();
+    },
+    handleMove(move) {
+      this.faces = getNewFaces(deepClone(this.faces), move);
     }
   }
 };
@@ -70,42 +84,25 @@ export default {
       width 100%
       height 100%
       box-sizing border-box
-      background-color gray
+      background-color lightgray
       &--U
         grid-area U
-        & > ^[-1]__particle
-          background-color white
       &--L
         grid-area L
-        & > ^[-1]__particle
-          background-color orange
-          color white
       &--F
         grid-area F
-        & > ^[-1]__particle
-          background-color green
-          color white
       &--R
         grid-area R
-        & > ^[-1]__particle
-          background-color red
-          color white
       &--B
         grid-area B
-        & > ^[-1]__particle
-          background-color blue
-          color white
       &--D
         grid-area D
-        & > ^[-1]__particle
-          background-color yellow
       &__particle
         display flex
         flex-flow row nowrap
         width 100%
         height 100%
         box-sizing border-box
-        background-color white
         justify-content center
         align-items center
 </style>

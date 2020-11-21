@@ -22,13 +22,13 @@ export default {
         { action: "L", label: "L" },
         { action: "L'", label: "L'" },
         { action: "R", label: "R" },
-        { action: "R", label: "R'" },
+        { action: "R'", label: "R'" },
         { action: "B", label: "B" },
         { action: "B'", label: "B'" },
         { action: "U", label: "U" },
         { action: "U'", label: "U'" },
         { action: "D", label: "D" },
-        { action: "D", label: "D'" }
+        { action: "D'", label: "D'" }
       ]
     };
   },

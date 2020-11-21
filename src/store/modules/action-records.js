@@ -18,7 +18,7 @@ const mutations = {
   addRecord: (state, payload) => {
     state.records.push(payload);
   },
-  unsetRecords() {
+  unset() {
     const iState = initialState();
     Object.keys(iState).forEach(key => {
       state[key] = iState[key];
@@ -30,8 +30,8 @@ const actions = {
   actionAddRecord: ({ commit }, payload) => {
     commit("addRecord", payload);
   },
-  actionUnsetRecords: ({ commit }) => {
-    commit("unsetRecords");
+  actionUnset: ({ commit }) => {
+    commit("unset");
   }
 };
 
