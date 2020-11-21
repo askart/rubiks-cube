@@ -14,13 +14,21 @@ const faceIndexMap = {
   B: 4,
   D: 5
 };
+// const faceColorMap = {
+//   U: "white",
+//   L: "orange",
+//   F: "green",
+//   R: "red",
+//   B: "blue",
+//   D: "yellow"
+// };
 const faceColorMap = {
-  U: "white",
+  U: "yellow",
   L: "orange",
-  F: "green",
+  F: "blue",
   R: "red",
-  B: "blue",
-  D: "yellow"
+  B: "green",
+  D: "white"
 };
 const faceColorFontColorMap = {
   white: "black",
@@ -29,7 +37,7 @@ const faceColorFontColorMap = {
   red: "white",
   blue: "white",
   yellow: "black"
-}
+};
 const faceRotationMap = {
   U: ["B", "R", "F", "L"],
   L: ["U", "F", "D", "B"],
@@ -44,7 +52,7 @@ const faceRotationParticlesMap = {
     [0, 3, 6],
     [0, 3, 6],
     [0, 3, 6],
-    [2, 5, 8]
+    [8, 5, 2]
   ],
   F: [
     [6, 7, 8],
@@ -61,11 +69,11 @@ const faceRotationParticlesMap = {
   B: [
     [2, 1, 0],
     [0, 3, 6],
-    [8, 7, 6],
+    [6, 7, 8],
     [8, 5, 2]
   ],
   D: Array(4).fill([6, 7, 8])
-}
+};
 
 export function generateFaces() {
   return faces.map(face => {
@@ -84,25 +92,29 @@ export function generateFaces() {
   });
 }
 
-export function getNewFaces(faces, move) {
-  let faceKey = move.split("")[0];
+function rotate(arr, rotationType) {
+  if (rotationType) {
+    // counterclockwise
+    if (rotationType === "'") {
+      return [...arr.slice(1), ...arr.slice(0, 1)];
+    }
+    // 180deg
+    if (rotationType === "2") {
+      return [...arr.slice(2), ...arr.slice(0, 2)];
+    }
+  }
+  // clockwise
+  return [...arr.slice(-1), ...arr.slice(0, -1)];
+}
+
+function getOuterFaces(faces, faceKey, rotationType) {
   let facesKeys = faceRotationMap[faceKey];
   let particlesKeys = faceRotationParticlesMap[faceKey];
   let colors = facesKeys.map((key, index) => {
     let particles = faces[faceIndexMap[key]].particles;
     return particlesKeys[index].map(pKey => particles[pKey].color);
   });
-  if (move.split("")[1]) {
-    colors = [...colors.slice(1), ...colors.slice(0, 1)];
-  } else {
-    colors = [...colors.slice(-1), ...colors.slice(0, -1)];
-    // let particles = faces[faceIndexMap[faceKey]].particles;
-    // [[0, 1, 2], [2, 5, 8], [8, 7, 6], [6, 3, 0]];
-    // particlesKeys[index].forEach((pKey, pIndex) => {
-    //   particles[pKey].color = colors[index][pIndex];
-    //   particles[pKey].fontColor = faceColorFontColorMap[particles[pKey].color];
-    // });
-  }
+  colors = rotate(colors, rotationType);
   facesKeys.forEach((key, index) => {
     let particles = faces[faceIndexMap[key]].particles;
     particlesKeys[index].forEach((pKey, pIndex) => {
@@ -110,5 +122,33 @@ export function getNewFaces(faces, move) {
       particles[pKey].fontColor = faceColorFontColorMap[particles[pKey].color];
     });
   });
+  return faces;
+}
+
+function getInnerFaces(faces, faceKey, rotationType) {
+  let particles = faces[faceIndexMap[faceKey]].particles;
+  let particlesKeys = [
+    [0, 1],
+    [2, 5],
+    [8, 7],
+    [6, 3]
+  ];
+  let colors = [0, 1, 2, 3].map(index => {
+    return particlesKeys[index].map(pKey => particles[pKey].color);
+  });
+  colors = rotate(colors, rotationType);
+  [0, 1, 2, 3].forEach(index => {
+    particlesKeys[index].forEach((pKey, pIndex) => {
+      particles[pKey].color = colors[index][pIndex];
+      particles[pKey].fontColor = faceColorFontColorMap[particles[pKey].color];
+    });
+  });
+  return faces;
+}
+
+export function getNewFaces(faces, move) {
+  let [faceKey, rotationType] = move.split("");
+  faces = getOuterFaces(faces, faceKey, rotationType);
+  faces = getInnerFaces(faces, faceKey, rotationType);
   return faces;
 }

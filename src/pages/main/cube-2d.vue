@@ -11,7 +11,10 @@
           v-for="particle in face.particles"
           :key="`${face.key}__${particle.key}`"
           class="cube-2d__grid__face__particle"
-          :style="{ backgroundColor: particle.color, color: particle.fontColor }"
+          :style="{
+            backgroundColor: particle.color,
+            color: particle.fontColor
+          }"
         >
           <template v-if="particle.content">{{ particle.content }}</template>
         </div>
@@ -28,7 +31,8 @@ export default {
   name: "Cube2d",
   data() {
     return {
-      faces: []
+      faces: [],
+      index: 0
     };
   },
   computed: {
@@ -39,8 +43,11 @@ export default {
   watch: {
     records: {
       handler: function(val) {
-        let lastMove = val.slice(-1)[0];
-        this.handleMove(lastMove);
+        let len = val.length;
+        for (let i = this.index; i < len; i++) {
+          this.handleMove(val[i]);
+        }
+        this.index = len;
       }
     }
   },
