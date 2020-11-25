@@ -19,16 +19,16 @@ export function init(id, width, height) {
   element.appendChild(renderer.domElement);
 
   rubiksCube = createRubiksCube();
-  // rubiksCube.rotation.x = Math.PI / 5;
-  // rubiksCube.rotation.y = Math.PI / 4;
+  rubiksCube.rotation.x = Math.PI / 5;
+  rubiksCube.rotation.y = Math.PI / 4;
   scene.add(rubiksCube);
 
   faceParticles = getFaceParticles();
-  // faceParticles.rotation.x = Math.PI / 5;
-  // faceParticles.rotation.y = Math.PI / 4;
+  faceParticles.rotation.x = Math.PI / 5;
+  faceParticles.rotation.y = Math.PI / 4;
   scene.add(faceParticles);
 
-  camera.position.z = 4.5;
+  camera.position.z = 5;
 }
 
 function createRubiksCube() {
@@ -105,9 +105,9 @@ export function getFaceParticles() {
 export function animate() {
   requestAnimationFrame(animate);
 
-  faceParticles.rotation.y += Math.PI / 2 / 200;
+  faceParticles.rotation.y -= Math.PI / 2 / 200;
 
-  // rubiksCube.rotation.y -= Math.PI / 2 / 200;
+  rubiksCube.rotation.y -= Math.PI / 2 / 200;
 
   renderer.render(scene, camera);
 }

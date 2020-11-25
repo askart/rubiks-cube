@@ -8,7 +8,7 @@ import { init, animate } from "@/lib/cube3d";
 export default {
   name: "Cube3d",
   mounted() {
-    init("cube-3d", 500, 300);
+    init("cube-3d", 600, 300);
     animate();
   }
 };
