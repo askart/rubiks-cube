@@ -10,6 +10,8 @@ const camera = new THREE.PerspectiveCamera(
 
 const renderer = new THREE.WebGLRenderer({ alpha: true });
 let rubiksCube;
+let particles = [];
+let faceParticles;
 
 export function init(id, width, height) {
   const element = document.getElementById(id);
@@ -17,10 +19,14 @@ export function init(id, width, height) {
   element.appendChild(renderer.domElement);
 
   rubiksCube = createRubiksCube();
-  rubiksCube.rotation.x = 0.75;
-  rubiksCube.rotation.y = 0.75;
-
+  // rubiksCube.rotation.x = Math.PI / 5;
+  // rubiksCube.rotation.y = Math.PI / 4;
   scene.add(rubiksCube);
+
+  faceParticles = getFaceParticles();
+  // faceParticles.rotation.x = Math.PI / 5;
+  // faceParticles.rotation.y = Math.PI / 4;
+  scene.add(faceParticles);
 
   camera.position.z = 4.5;
 }
@@ -28,37 +34,47 @@ export function init(id, width, height) {
 function createRubiksCube() {
   const cube = new THREE.Object3D();
   const offset = 0.05;
-  for (let x = 0; x < 3 * (offset + 1); x += offset + 1) {
-    for (let y = 0; y < 3 * (offset + 1); y += offset + 1) {
-      for (let z = 0; z < 3 * (offset + 1); z += offset + 1) {
-        cube.add(createRubiksCubeParticle(x, y, z, offset));
+  for (let i = 0; i < 3; i++) {
+    particles[i] = [];
+    for (let j = 0; j < 3; j++) {
+      particles[i][j] = [];
+      for (let k = 0; k < 3; k++) {
+        const x = i * (offset + 1);
+        const y = j * (offset + 1);
+        const z = k * (offset + 1);
+        const particle = createRubiksCubeParticle(x, y, z, offset);
+        particles[i][j][k] = particle;
+        cube.add(particle);
       }
     }
   }
   return cube;
 }
 
+function getParticleColor(val, color, offset) {
+  if (["red", "yellow", "blue"].includes(color)) {
+    return val === 2 * (offset + 1) ? color : "black";
+  }
+  if (["orange", "white", "green"].includes(color)) {
+    return val === 0 ? color : "black";
+  }
+}
+
 function createRubiksCubeParticle(x, y, z, offset) {
   const geometry = new THREE.BoxGeometry();
   let material = [
+    new THREE.MeshBasicMaterial({ color: getParticleColor(x, "red", offset) }), // R
     new THREE.MeshBasicMaterial({
-      color: x === 2 * (offset + 1) ? "red" : "black"
-    }), // R
-    new THREE.MeshBasicMaterial({
-      color: x === 0 ? "orange" : "black"
+      color: getParticleColor(x, "orange", offset)
     }), // L
     new THREE.MeshBasicMaterial({
-      color: y === 2 * (offset + 1) ? "yellow" : "black"
+      color: getParticleColor(y, "yellow", offset)
     }), // U
     new THREE.MeshBasicMaterial({
-      color: y === 0 ? "white" : "black"
+      color: getParticleColor(y, "white", offset)
     }), // D
-    new THREE.MeshBasicMaterial({
-      color: z === 2 * (offset + 1) ? "blue" : "black"
-    }), // F
-    new THREE.MeshBasicMaterial({
-      color: z === 0 ? "green" : "black"
-    }) // B
+    new THREE.MeshBasicMaterial({ color: getParticleColor(z, "blue", offset) }), // F
+    new THREE.MeshBasicMaterial({ color: getParticleColor(z, "green", offset) }) // B
   ];
   const cube = new THREE.Mesh(geometry, material);
   const line = new THREE.LineSegments(
@@ -72,12 +88,26 @@ function createRubiksCubeParticle(x, y, z, offset) {
   return cube;
 }
 
+export function getFaceParticles() {
+  faceParticles = new THREE.Object3D();
+  for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 3; j++) {
+      for (let k = 0; k < 3; k++) {
+        if (j === 0) {
+          faceParticles.add(particles[i][j][k]);
+        }
+      }
+    }
+  }
+  return faceParticles;
+}
+
 export function animate() {
   requestAnimationFrame(animate);
 
-  rubiksCube.rotation.x += 0.005;
-  rubiksCube.rotation.y += 0.005;
-  rubiksCube.rotation.z += 0.005;
+  faceParticles.rotation.y += Math.PI / 2 / 200;
+
+  // rubiksCube.rotation.y -= Math.PI / 2 / 200;
 
   renderer.render(scene, camera);
 }
