@@ -24,4 +24,6 @@ export default {
   height 100%
   border 1px solid black
   box-sizing border-box
+  & >>> > canvas
+    outline none
 </style>
