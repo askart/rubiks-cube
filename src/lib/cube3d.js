@@ -1,6 +1,22 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
+const textures = {
+  yellow: require("@/assets/yellow.png"),
+  orange: require("@/assets/orange.png"),
+  blue: require("@/assets/blue.png"),
+  red: require("@/assets/red.png"),
+  green: require("@/assets/green.png"),
+  white: require("@/assets/white.png")
+};
+
+const loadManager = new THREE.LoadingManager();
+const loader = new THREE.TextureLoader(loadManager);
+
+loadManager.onLoad = function() {
+  requestRender();
+};
+
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
   15,
@@ -11,6 +27,8 @@ const camera = new THREE.PerspectiveCamera(
 
 const renderer = new THREE.WebGLRenderer({ alpha: true });
 const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
 let rubiksCube;
 let particles = [];
 let faceParticles;
@@ -32,11 +50,12 @@ export function init(id, width, height) {
 
   camera.position.z = 20;
   controls.update();
+  requestRender();
 }
 
 function createRubiksCube() {
   const cube = new THREE.Object3D();
-  const offset = 0.05;
+  const offset = 0.0;
   for (let i = 0; i < 3; i++) {
     particles[i] = [];
     for (let j = 0; j < 3; j++) {
@@ -54,44 +73,34 @@ function createRubiksCube() {
   return cube;
 }
 
-function getParticleColor(val, color, offset) {
-  if (["red", "yellow", "blue"].includes(color)) {
-    return val === 2 * (offset + 1) ? color : "black";
+function getParticleMaterial(color, cond) {
+  const options = {};
+  if (cond) {
+    options.map = loader.load(textures[color]);
+  } else {
+    options.color = "black";
   }
-  if (["orange", "white", "green"].includes(color)) {
-    return val === 0 ? color : "black";
-  }
+  return new THREE.MeshBasicMaterial(options);
 }
 
 function createRubiksCubeParticle(x, y, z, offset) {
   const geometry = new THREE.BoxGeometry();
-  let material = [
-    new THREE.MeshBasicMaterial({ color: getParticleColor(x, "red", offset) }), // R
-    new THREE.MeshBasicMaterial({
-      color: getParticleColor(x, "orange", offset)
-    }), // L
-    new THREE.MeshBasicMaterial({
-      color: getParticleColor(y, "yellow", offset)
-    }), // U
-    new THREE.MeshBasicMaterial({
-      color: getParticleColor(y, "white", offset)
-    }), // D
-    new THREE.MeshBasicMaterial({ color: getParticleColor(z, "blue", offset) }), // F
-    new THREE.MeshBasicMaterial({ color: getParticleColor(z, "green", offset) }) // B
+  let materials = [
+    getParticleMaterial("red", x === 2 * (offset + 1)), // R
+    getParticleMaterial("orange", x === 0), // L
+    getParticleMaterial("yellow", y === 2 * (offset + 1)), // U
+    getParticleMaterial("white", y === 0), // D
+    getParticleMaterial("blue", z === 2 * (offset + 1)), // F
+    getParticleMaterial("green", z === 0) // B
   ];
-  const cube = new THREE.Mesh(geometry, material);
-  const line = new THREE.LineSegments(
-    new THREE.EdgesGeometry(geometry),
-    new THREE.LineBasicMaterial({ color: 0x000000 })
-  );
-  cube.add(line);
+  const cube = new THREE.Mesh(geometry, materials);
   cube.position.x = x - (3 * 1 + 2 * offset) / 2 + 1 / 2;
   cube.position.y = y - (3 * 1 + 2 * offset) / 2 + 1 / 2;
   cube.position.z = z - (3 * 1 + 2 * offset) / 2 + 1 / 2;
   return cube;
 }
 
-export function getFaceParticles() {
+function getFaceParticles() {
   faceParticles = new THREE.Object3D();
   for (let i = 0; i < 3; i++) {
     for (let j = 0; j < 3; j++) {
@@ -105,14 +114,23 @@ export function getFaceParticles() {
   return faceParticles;
 }
 
-export function animate() {
-  requestAnimationFrame(animate);
-
-  // faceParticles.rotation.y -= THREE.MathUtils.degToRad(90) / 200;
-
-  // rubiksCube.rotation.y -= THREE.MathUtils.degToRad(90) / 200;
-
+let renderRequested = false;
+function render() {
+  renderRequested = false;
   controls.update();
-
   renderer.render(scene, camera);
+}
+
+function requestRender() {
+  if (!renderRequested) {
+    renderRequested = true;
+    requestAnimationFrame(render);
+  }
+}
+controls.addEventListener("change", requestRender);
+
+export function rotate(move) {
+  if (move) {
+    console.log(move);
+  }
 }
