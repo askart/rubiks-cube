@@ -3,7 +3,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
-  75,
+  15,
   window.innerWidth / window.innerHeight,
   0.1,
   1000
@@ -21,16 +21,16 @@ export function init(id, width, height) {
   element.appendChild(renderer.domElement);
 
   rubiksCube = createRubiksCube();
-  rubiksCube.rotation.x = Math.PI / 5;
-  rubiksCube.rotation.y = Math.PI / 4;
+  rubiksCube.rotation.x = THREE.MathUtils.degToRad(25);
+  rubiksCube.rotation.y = THREE.MathUtils.degToRad(45);
   scene.add(rubiksCube);
 
   faceParticles = getFaceParticles();
-  faceParticles.rotation.x = Math.PI / 5;
-  faceParticles.rotation.y = Math.PI / 4;
+  faceParticles.rotation.x = THREE.MathUtils.degToRad(25);
+  faceParticles.rotation.y = THREE.MathUtils.degToRad(45);
   scene.add(faceParticles);
 
-  camera.position.z = 5;
+  camera.position.z = 20;
   controls.update();
 }
 
@@ -108,9 +108,9 @@ export function getFaceParticles() {
 export function animate() {
   requestAnimationFrame(animate);
 
-  faceParticles.rotation.y -= Math.PI / 2 / 200;
+  // faceParticles.rotation.y -= THREE.MathUtils.degToRad(90) / 200;
 
-  rubiksCube.rotation.y -= Math.PI / 2 / 200;
+  // rubiksCube.rotation.y -= THREE.MathUtils.degToRad(90) / 200;
 
   controls.update();
 
