@@ -30,7 +30,6 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 
 let rubiksCube;
-let particles = [];
 
 export function init(id, width, height) {
   const element = document.getElementById(id);
@@ -48,18 +47,12 @@ export function init(id, width, height) {
 }
 
 function createRubiksCube() {
-  const cube = new THREE.Object3D();
-  const offset = 0.0;
+  const cube = new THREE.Group();
   for (let i = 0; i < 3; i++) {
-    particles[i] = [];
     for (let j = 0; j < 3; j++) {
-      particles[i][j] = [];
       for (let k = 0; k < 3; k++) {
-        const x = i * (offset + 1);
-        const y = j * (offset + 1);
-        const z = k * (offset + 1);
-        const particle = createRubiksCubeParticle(x, y, z, offset);
-        particles[i][j][k] = particle;
+        const particle = createRubiksCubeParticle(i, j, k);
+        particle.userData.position = { x: i, y: j, z: k };
         cube.add(particle);
       }
     }
@@ -77,20 +70,20 @@ function getParticleMaterial(color, cond) {
   return new THREE.MeshBasicMaterial(options);
 }
 
-function createRubiksCubeParticle(x, y, z, offset) {
+function createRubiksCubeParticle(x, y, z) {
   const geometry = new THREE.BoxGeometry();
   let materials = [
-    getParticleMaterial("red", x === 2 * (offset + 1)), // R
+    getParticleMaterial("red", x === 2), // R
     getParticleMaterial("orange", x === 0), // L
-    getParticleMaterial("yellow", y === 2 * (offset + 1)), // U
+    getParticleMaterial("yellow", y === 2), // U
     getParticleMaterial("white", y === 0), // D
-    getParticleMaterial("blue", z === 2 * (offset + 1)), // F
+    getParticleMaterial("blue", z === 2), // F
     getParticleMaterial("green", z === 0) // B
   ];
   const cube = new THREE.Mesh(geometry, materials);
-  cube.position.x = x - (3 * 1 + 2 * offset) / 2 + 1 / 2;
-  cube.position.y = y - (3 * 1 + 2 * offset) / 2 + 1 / 2;
-  cube.position.z = z - (3 * 1 + 2 * offset) / 2 + 1 / 2;
+  cube.position.x = x - 1;
+  cube.position.y = y - 1;
+  cube.position.z = z - 1;
   return cube;
 }
 
@@ -109,35 +102,33 @@ function requestRender() {
 }
 controls.addEventListener("change", requestRender);
 
-function setCubeParticles() {
-  for (let i = 0; i < 3; i++) {
-    for (let j = 0; j < 3; j++) {
-      for (let k = 0; k < 3; k++) {
-        rubiksCube.add(particles[i][j][k]);
-      }
-    }
-  }
+let faceParticles;
+function setFaceParticles(axis, val) {
+  faceParticles = new THREE.Group();
+  rubiksCube.children
+    .filter(particle => particle.userData.position[axis] === val)
+    .forEach(particle => {
+      faceParticles.add(particle);
+    });
   return faceParticles;
 }
 
-let faceParticles;
-function setFaceParticles(iStart, iEnd, jStart, jEnd, kStart, kEnd) {
-  faceParticles = new THREE.Object3D();
-  for (let i = iStart; i < iEnd; i++) {
-    for (let j = jStart; j < jEnd; j++) {
-      for (let k = kStart; k < kEnd; k++) {
-        faceParticles.add(particles[i][j][k]);
-      }
-    }
-  }
-  return faceParticles;
+function unsetFaceParticles() {
+  const particles = [];
+  faceParticles.children.forEach(particle => {
+    particles.push(particle);
+  });
+  particles.forEach(particle => {
+    rubiksCube.attach(particle);
+    particle.userData.position.x = Math.round(particle.position.x) + 1;
+    particle.userData.position.y = Math.round(particle.position.y) + 1;
+    particle.userData.position.z = Math.round(particle.position.z) + 1;
+  });
 }
 
 export function rotate(move) {
-  console.log(move);
-  setCubeParticles();
   if (move[0] === "U") {
-    setFaceParticles(0, 3, 2, 3, 0, 3);
+    setFaceParticles("y", 2);
     scene.add(faceParticles);
     if (move === "U") {
       faceParticles.rotateY(THREE.MathUtils.degToRad(-90));
@@ -150,7 +141,7 @@ export function rotate(move) {
     }
   }
   if (move[0] === "D") {
-    setFaceParticles(0, 3, 0, 1, 0, 3);
+    setFaceParticles("y", 0);
     scene.add(faceParticles);
     if (move === "D") {
       faceParticles.rotateY(THREE.MathUtils.degToRad(90));
@@ -163,7 +154,7 @@ export function rotate(move) {
     }
   }
   if (move[0] === "F") {
-    setFaceParticles(0, 3, 0, 3, 2, 3);
+    setFaceParticles("z", 2);
     scene.add(faceParticles);
     if (move === "F") {
       faceParticles.rotateZ(THREE.MathUtils.degToRad(-90));
@@ -176,7 +167,7 @@ export function rotate(move) {
     }
   }
   if (move[0] === "B") {
-    setFaceParticles(0, 3, 0, 3, 0, 1);
+    setFaceParticles("z", 0);
     scene.add(faceParticles);
     if (move === "B") {
       faceParticles.rotateZ(THREE.MathUtils.degToRad(90));
@@ -189,7 +180,7 @@ export function rotate(move) {
     }
   }
   if (move[0] === "L") {
-    setFaceParticles(0, 1, 0, 3, 0, 3);
+    setFaceParticles("x", 0);
     scene.add(faceParticles);
     if (move === "L") {
       faceParticles.rotateX(THREE.MathUtils.degToRad(90));
@@ -202,7 +193,7 @@ export function rotate(move) {
     }
   }
   if (move[0] === "R") {
-    setFaceParticles(2, 3, 0, 3, 0, 3);
+    setFaceParticles("x", 2);
     scene.add(faceParticles);
     if (move === "R") {
       faceParticles.rotateX(THREE.MathUtils.degToRad(-90));
@@ -214,5 +205,6 @@ export function rotate(move) {
       faceParticles.rotateX(THREE.MathUtils.degToRad(180));
     }
   }
+  unsetFaceParticles();
   renderer.render(scene, camera);
 }
