@@ -31,7 +31,6 @@ controls.enableDamping = true;
 
 let rubiksCube;
 let particles = [];
-let faceParticles;
 
 export function init(id, width, height) {
   const element = document.getElementById(id);
@@ -39,14 +38,9 @@ export function init(id, width, height) {
   element.appendChild(renderer.domElement);
 
   rubiksCube = createRubiksCube();
-  rubiksCube.rotation.x = THREE.MathUtils.degToRad(25);
-  rubiksCube.rotation.y = THREE.MathUtils.degToRad(45);
   scene.add(rubiksCube);
-
-  faceParticles = getFaceParticles();
-  faceParticles.rotation.x = THREE.MathUtils.degToRad(25);
-  faceParticles.rotation.y = THREE.MathUtils.degToRad(45);
-  scene.add(faceParticles);
+  scene.rotateX(THREE.MathUtils.degToRad(25));
+  scene.rotateY(THREE.MathUtils.degToRad(45));
 
   camera.position.z = 20;
   controls.update();
@@ -100,20 +94,6 @@ function createRubiksCubeParticle(x, y, z, offset) {
   return cube;
 }
 
-function getFaceParticles() {
-  faceParticles = new THREE.Object3D();
-  for (let i = 0; i < 3; i++) {
-    for (let j = 0; j < 3; j++) {
-      for (let k = 0; k < 3; k++) {
-        if (j === 0) {
-          faceParticles.add(particles[i][j][k]);
-        }
-      }
-    }
-  }
-  return faceParticles;
-}
-
 let renderRequested = false;
 function render() {
   renderRequested = false;
@@ -129,8 +109,110 @@ function requestRender() {
 }
 controls.addEventListener("change", requestRender);
 
-export function rotate(move) {
-  if (move) {
-    console.log(move);
+function setCubeParticles() {
+  for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 3; j++) {
+      for (let k = 0; k < 3; k++) {
+        rubiksCube.add(particles[i][j][k]);
+      }
+    }
   }
+  return faceParticles;
+}
+
+let faceParticles;
+function setFaceParticles(iStart, iEnd, jStart, jEnd, kStart, kEnd) {
+  faceParticles = new THREE.Object3D();
+  for (let i = iStart; i < iEnd; i++) {
+    for (let j = jStart; j < jEnd; j++) {
+      for (let k = kStart; k < kEnd; k++) {
+        faceParticles.add(particles[i][j][k]);
+      }
+    }
+  }
+  return faceParticles;
+}
+
+export function rotate(move) {
+  console.log(move);
+  setCubeParticles();
+  if (move[0] === "U") {
+    setFaceParticles(0, 3, 2, 3, 0, 3);
+    scene.add(faceParticles);
+    if (move === "U") {
+      faceParticles.rotateY(THREE.MathUtils.degToRad(-90));
+    }
+    if (move === "U'") {
+      faceParticles.rotateY(THREE.MathUtils.degToRad(90));
+    }
+    if (move === "U2") {
+      faceParticles.rotateY(THREE.MathUtils.degToRad(180));
+    }
+  }
+  if (move[0] === "D") {
+    setFaceParticles(0, 3, 0, 1, 0, 3);
+    scene.add(faceParticles);
+    if (move === "D") {
+      faceParticles.rotateY(THREE.MathUtils.degToRad(90));
+    }
+    if (move === "D'") {
+      faceParticles.rotateY(THREE.MathUtils.degToRad(-90));
+    }
+    if (move === "D2") {
+      faceParticles.rotateY(THREE.MathUtils.degToRad(180));
+    }
+  }
+  if (move[0] === "F") {
+    setFaceParticles(0, 3, 0, 3, 2, 3);
+    scene.add(faceParticles);
+    if (move === "F") {
+      faceParticles.rotateZ(THREE.MathUtils.degToRad(-90));
+    }
+    if (move === "F'") {
+      faceParticles.rotateZ(THREE.MathUtils.degToRad(90));
+    }
+    if (move === "F2") {
+      faceParticles.rotateZ(THREE.MathUtils.degToRad(180));
+    }
+  }
+  if (move[0] === "B") {
+    setFaceParticles(0, 3, 0, 3, 0, 1);
+    scene.add(faceParticles);
+    if (move === "B") {
+      faceParticles.rotateZ(THREE.MathUtils.degToRad(90));
+    }
+    if (move === "B'") {
+      faceParticles.rotateZ(THREE.MathUtils.degToRad(-90));
+    }
+    if (move === "B2") {
+      faceParticles.rotateZ(THREE.MathUtils.degToRad(180));
+    }
+  }
+  if (move[0] === "L") {
+    setFaceParticles(0, 1, 0, 3, 0, 3);
+    scene.add(faceParticles);
+    if (move === "L") {
+      faceParticles.rotateX(THREE.MathUtils.degToRad(90));
+    }
+    if (move === "L'") {
+      faceParticles.rotateX(THREE.MathUtils.degToRad(-90));
+    }
+    if (move === "L2") {
+      faceParticles.rotateX(THREE.MathUtils.degToRad(180));
+    }
+  }
+  if (move[0] === "R") {
+    setFaceParticles(2, 3, 0, 3, 0, 3);
+    scene.add(faceParticles);
+    if (move === "R") {
+      faceParticles.rotateX(THREE.MathUtils.degToRad(-90));
+    }
+    if (move === "R'") {
+      faceParticles.rotateX(THREE.MathUtils.degToRad(90));
+    }
+    if (move === "R2") {
+      faceParticles.rotateX(THREE.MathUtils.degToRad(180));
+    }
+  }
+  renderer.render(scene, camera);
 }
