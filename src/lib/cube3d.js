@@ -18,12 +18,7 @@ loadManager.onLoad = function() {
 };
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(
-  15,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000
-);
+const camera = new THREE.PerspectiveCamera(15, 2, 0.1, 1000);
 
 const renderer = new THREE.WebGLRenderer({ alpha: true });
 const controls = new OrbitControls(camera, renderer.domElement);
@@ -87,9 +82,29 @@ function createRubiksCubeParticle(x, y, z) {
   return cube;
 }
 
+function resizeRendererToDisplaySize(renderer) {
+  const canvas = renderer.domElement;
+  const width = canvas.clientWidth;
+  const height = canvas.clientHeight;
+  console.log(width, height);
+  const needResize = canvas.width !== width || canvas.height !== height;
+  if (needResize) {
+    renderer.setSize(width, height, false);
+  }
+  return needResize;
+}
+
 let renderRequested = false;
 function render() {
   renderRequested = false;
+
+  if (resizeRendererToDisplaySize(renderer)) {
+    const canvas = renderer.domElement;
+    camera.aspect = canvas.clientWidth / canvas.clientHeight;
+    console.log(camera.aspect);
+    camera.updateProjectionMatrix();
+  }
+
   controls.update();
   renderer.render(scene, camera);
 }
@@ -101,6 +116,7 @@ function requestRender() {
   }
 }
 controls.addEventListener("change", requestRender);
+window.addEventListener("resize", requestRender);
 
 let faceParticles;
 function setFaceParticles(axis, val) {
